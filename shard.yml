@@ -1,0 +1,17 @@
+name: remote-auth-api
+version: 0.1.0
+
+authors:
+  - Peter Doherty <pdoherty926@gmail.com>
+
+targets:
+  remote-auth-api:
+    main: src/remote-auth-api.cr
+
+dependencies:
+  kemal:
+    github: kemalcr/kemal
+
+crystal: 0.24.1
+
+license: MIT
