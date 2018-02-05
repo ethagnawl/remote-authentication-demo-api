@@ -24,17 +24,19 @@ options "/users/auth/sign_in" do |env|
   env.response.headers["Access-Control-Allow-Origin"] = ACCESS_CONTROL_ALLOW_ORIGIN
 end
 
+alias SuccessResponse = Hash(String, Hash(String, Hash(String, String)))
+alias ErrorResponse = Hash(String, Array(String))
+
 post "/users" do |env|
   begin
-    result = Types::User.from_json(env.params.json.to_json)
-    email = result.email
-    USER_DATABASE[email] = result
-    success_response = Hash(String, Hash(String, Types::User)).new
-    success_response["data"] = {"attributes" => result}
+    user = Types::User.from_json(env.params.json.to_json)
+    USER_DATABASE[user.email] = user
+    success_response = SuccessResponse.new
+    success_response["data"] = {"attributes" => user.to_h}
     env.response.status_code = 200
     success_response.to_json
-  rescue exception: JSON::ParseException
-    error_response = Hash(String, Array(String)).new
+  rescue exception: JSON::ParseException | JSON::Error
+    error_response = ErrorResponse.new
     error_response["errors"] = [exception.message.to_s]
     env.response.status_code = 400
     error_response.to_json
