@@ -1,3 +1,4 @@
+require "crypto/bcrypt"
 require "kemal"
 require "./database"
 
@@ -30,6 +31,9 @@ alias ErrorResponse = Hash(String, Array(String))
 post "/users" do |env|
   begin
     user = Types::User.from_json(env.params.json.to_json)
+    _password = "#{user.password}#{user.email}"
+    hashed_password = Crypto::Bcrypt::Password.create(_password).to_s
+    user.password = hashed_password
     USER_DATABASE[user.email] = user
     success_response = SuccessResponse.new
     success_response["data"] = {"attributes" => user.to_h}
@@ -47,17 +51,20 @@ post "/users/auth/sign_in" do |env|
   begin
     auth = Types::UserAuth.from_json(env.params.json.to_json)
     user = USER_DATABASE[auth.email]
-    if user.password == auth.password
+    hashed_password = Crypto::Bcrypt::Password.new(user.password)
+    salted_auth_password = "#{auth.password}#{auth.email}"
+
+    if hashed_password == salted_auth_password
       success_response = SuccessResponse.new
       success_response["data"] = {"attributes" => user.to_h}
       env.response.status_code = 200
       success_response.to_json
     else
-      raise "Invalid email or password."
+      raise Exception.new
     end
   rescue exception: Exception
     error_response = ErrorResponse.new
-    error_response["errors"] = [exception.message.to_s]
+    error_response["errors"] = ["Invalid email or password."]
     env.response.status_code = 401
     error_response.to_json
   end
