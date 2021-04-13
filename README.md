@@ -1,6 +1,6 @@
 # remote-auth-api
 
-TODO: Write a description here
+This repository is the back-end for my [elm-ui-patterns/remote-auth demo](https://github.com/ethagnawl/elm-ui-patterns/tree/master/remote-authentication).
 
 ## Installation
 
